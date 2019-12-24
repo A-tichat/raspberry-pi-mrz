@@ -1,12 +1,118 @@
-def checkDigit(para_checker):
+class mrz:
+    TD="3"
+
+    def __init__(self,data):
+        #to check type of passport
+        if (data[:1] != "P"):
+            raise ValueError("There is another type")
+
+        #Ptype = data[1:2]
+
+        #to check country
+        self.country = data[2:5]
+        if not checkAlpha(self.country): raise ValueError("Picture is error!")
+
+        #to keep name 
+        self.name = ""
+        i=5
+        while True:
+            temp = data[i:i+1]
+            i+=1
+            if (temp == '\n'): break
+            if (temp == "<"):
+                temp += data[i:i+1]
+                i+=1
+                if (temp == "<\n" or temp == "<<"):
+                    break
+            self.name += temp
+        self.name = self.name.replace("<"," ")
+
+        #to keep surname
+        self.surname = ""
+        while True: 
+            temp = data[i:i+1]
+            i+=1
+            if (i>44 or temp == '\n'): break
+            if (temp == "<"):
+                temp += data[i:i+1]
+                i+=1
+                if (temp == "<\n" or temp == "<<"):
+                    break
+            self.surname += temp
+        self.surname = self.surname.replace("<"," ")
+
+        #to skip line
+        if not (data[i-1:i] == '\n'):
+            while True:
+                ch = data[i:i+1]
+                i+=1
+                if (ch == '\n'or i>44): 
+                    break
+
+        #to line 2 keep passport's number
+        self.passportNum = data[i:i+9]
+        i+=10
+        self.c_passportNum = data[i-1:i]
+        if not checkDigit(self.passportNum, self.c_passportNum): raise ValueError("Picture is error!")
+
+        #to keep nationality
+        self.nationality = data[i:i+3]
+        i+=3
+        if not checkAlpha(self.nationality): raise ValueError("Picture is error!")
+
+        #to keep dateOfBirth
+        self.dateOfBirth = data[i:i+6]
+        i+=7
+        self.c_dateOfBirth = data[i-1:i]
+        if not checkDigit(self.dateOfBirth, self.c_dateOfBirth): raise ValueError("Picture is error!")
+
+        #to keep sex
+        self.sex = data[i:i+1]
+        i+=1
+        if not checkAlpha(self.sex): raise ValueError("Picture is error!")
+        
+        #to keep expiration date of passport
+        self.expiry = data[i:i+6]
+        i+=7
+        self.c_expiry = data[i-1:i]
+        if not checkDigit(self.expiry, self.c_expiry): raise ValueError("Picture is error!")
+
+        #to keep Personal number
+        self.personalNum = data[i:i+14]
+        i+=15
+        self.c_personalNum = data[i-1:i]
+        if not checkDigit(self.personalNum, self.c_personalNum): raise ValueError("Picture is error!")
+
+        #to check digit for positions
+        last = data[i-22:i]+data[i-30:i-23]+data[i-43:i-33]
+        self.checksum = data[i:i+1]
+        i+=1
+        if not checkDigit(last, self.checksum): raise ValueError("Picture is error!")
+        print("Done")
+    
+    def result(self):
+        print("Type = "+self.TD)
+        print("Name = "+self.name)
+        print("Surname = "+self.surname)
+        print("Passport number = "+self.passportNum.replace("<",""))
+        print("Nationality = "+self.nationality)
+        yy = self.dateOfBirth[:2]
+        mm = self.dateOfBirth[2:4]
+        dd = self.dateOfBirth[4:]
+        print("Date of birth = "+yy+" "+mm+" "+dd)
+        print("Sex = "+self.sex)
+        yy = self.expiry[:2]
+        mm = self.expiry[2:4]
+        dd = self.expiry[4:]
+        print("Expiration date = "+yy+" "+mm+" "+dd)
+        print("Personal number = "+self.personalNum.replace("<",""))
+
+def checkDigit(data,checker):
     cnum=0
     posi=0
-    notFlag = 0
-    size = len(para_checker)
-    if not para_checker[size-1:].isdigit(): return False
-    for n in para_checker:
-        notFlag +=1
-        if notFlag==size: break
+    size = len(data)
+    if not checker.isdigit(): return False
+    for n in data:
         value = 0
         if (n.isalpha()):
             value = ord(n)-55
@@ -23,8 +129,9 @@ def checkDigit(para_checker):
         elif(posi%3 == 2):
             cnum += value
         posi+=1
-    if (int(para_checker[size-1:]) != cnum%10): return False
-    else: return True
+    if (int(checker) == cnum%10): return True
+    else:
+        return False
 
 def checkAlpha(checker):
     if checker=="D<<": return True
@@ -33,97 +140,3 @@ def checkAlpha(checker):
         if not c.isalpha(): return False
     return True
 
-def passCode(data):
-    #to check type of passport
-    if (data[:1] != "P"):
-        print("There is another type")
-        return "Picture error"
-
-    Ptype = data[1:2]
-
-    #to check country
-    country = data[2:5]
-    if not checkAlpha(country): return "Picture is error!"
-    print("Country is "+country)
-
-    #to keep name 
-    name = ""
-    i=5
-    while True:
-        temp = data[i:i+1]
-        i+=1
-        if (temp == '\n'): break
-        if (temp == "<"):
-            temp += data[i:i+1]
-            i+=1
-            if (temp == "<\n" or temp == "<<"):
-                break
-        name += temp
-    name += '\0'
-    print("Name is "+name.replace("<", " "))
-
-    #to keep surname
-    sur = ""
-    while True: 
-        temp = data[i:i+1]
-        i+=1
-        if (i>44 or temp == '\n'): break
-        if (temp == "<"):
-            temp += data[i:i+1]
-            i+=1
-            if (temp == "<\n" or temp == "<<"):
-                break
-        sur += temp
-    sur += '\0'
-    print("Surname is "+sur.replace("<", " "))
-
-    #to skip line
-    if not (data[i-1:i] == '\n'):
-        while True:
-            ch = data[i:i+1]
-            i+=1
-            if (ch == '\n'or i>44): break
-
-    #to line 2 keep passport's number
-    Pnum = data[i:i+10]
-    i+=10
-    if not checkDigit(Pnum): return "Picture is error!"
-    print("Passport's number is "+Pnum[:len(Pnum)-1])
-
-    #to keep nationality
-    nat = data[i:i+3]
-    i+=3
-    if not checkAlpha(nat): return "Picture is error!"
-    print("Nationality is "+nat)
-
-    #to keep dateOfBirth
-    birth = data[i:i+7]
-    i+=7
-    if not checkDigit(birth): return "Picture is error!"
-    print("Date of birth is "+birth[:len(birth)-1])
-
-    #to keep sex
-    sex = data[i:i+1]
-    i+=1
-    if not checkAlpha(sex): return "Picture is error!"
-    print("Sex is "+sex)
-    
-    #to keep expiration
-    exp = data[i:i+7]
-    i+=7
-    if not checkDigit(exp): return "Picture is error!"
-    print("Expiration is "+exp[:len(exp)-1])
-
-    #to keep Personal number
-    per = data[i:i+15]
-    i+=15
-    if not checkDigit(per): return "Picture is error!"
-    print("Persoanl number is "+per.replace("<","")[:len(per)-1])
-
-    #to check digit for positions
-    last = Pnum+birth+exp+per
-    last += data[i:i+1]
-    i+=1
-    if not checkDigit(last): return "Picture is error!"
-    print("No Problem")
-    return "Done"
