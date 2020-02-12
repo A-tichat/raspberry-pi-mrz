@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import random
 import time
 
 from nextion import Nextion, EventType
